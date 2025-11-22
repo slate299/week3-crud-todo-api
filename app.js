@@ -12,11 +12,40 @@ app.get('/todos', (req, res) => {
   res.status(200).json(todos); // Send array as JSON
 });
 
-// POST New – Create
+// GET Single – Read One
+app.get('/todos/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const todo = todos.find(t => t.id === id);
+
+  if (!todo) {
+    return res.status(404).json({ error: 'Todo not found' });
+  }
+
+  res.json(todo);
+});
+
+// GET Active – Filter not completed
+app.get('/todos/active', (req, res) => {
+  const active = todos.filter(t => !t.completed);
+  res.json(active);
+});
+
+// POST New – Create (with validation)
 app.post('/todos', (req, res) => {
-  const newTodo = { id: todos.length + 1, ...req.body }; // Auto-ID
+  const { task, completed } = req.body;
+
+  if (!task) {
+    return res.status(400).json({ error: 'Task field is required' });
+  }
+
+  const newTodo = {
+    id: todos.length + 1,
+    task,
+    completed: completed || false
+  };
+
   todos.push(newTodo);
-  res.status(201).json(newTodo); // Echo back
+  res.status(201).json(newTodo);
 });
 
 // PATCH Update – Partial
