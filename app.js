@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+
 app.use(express.json()); // Parse JSON bodies
 
 let todos = [
@@ -9,7 +10,7 @@ let todos = [
 
 // GET All – Read
 app.get('/todos', (req, res) => {
-  res.status(200).json(todos); // Send array as JSON
+  res.status(200).json(todos);
 });
 
 // GET Single – Read One
@@ -41,18 +42,21 @@ app.post('/todos', (req, res) => {
   const newTodo = {
     id: todos.length + 1,
     task,
-    completed: completed || false
+    completed: completed || false,
   };
 
   todos.push(newTodo);
   res.status(201).json(newTodo);
 });
 
-// PATCH Update – Partial
+// PATCH Update – Partial Update
 app.patch('/todos/:id', (req, res) => {
-  const todo = todos.find((t) => t.id === parseInt(req.params.id)); // Array.find()
+  const id = parseInt(req.params.id);
+  const todo = todos.find(t => t.id === id);
+
   if (!todo) return res.status(404).json({ message: 'Todo not found' });
-  Object.assign(todo, req.body); // Merge: e.g., {completed: true}
+
+  Object.assign(todo, req.body);
   res.status(200).json(todo);
 });
 
@@ -60,20 +64,30 @@ app.patch('/todos/:id', (req, res) => {
 app.delete('/todos/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const initialLength = todos.length;
-  todos = todos.filter((t) => t.id !== id); // Array.filter() – non-destructive
-  if (todos.length === initialLength)
+
+  todos = todos.filter(t => t.id !== id);
+
+  if (todos.length === initialLength) {
     return res.status(404).json({ error: 'Not found' });
-  res.status(204).send(); // Silent success
+  }
+
+  res.status(204).send();
 });
 
+// GET Completed Tasks
 app.get('/todos/completed', (req, res) => {
-  const completed = todos.filter((t) => t.completed);
-  res.json(completed); // Custom Read!
+  const completed = todos.filter(t => t.completed);
+  res.json(completed);
 });
 
+// Error Handler
 app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Server error!' });
 });
 
-const PORT = 3002;
-app.listen(PORT, () => console.log(`Server on port ${PORT}`));
+// IMPORTANT: Use Render/Railway Port
+const PORT = process.env.PORT || 3002;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
